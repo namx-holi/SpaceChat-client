@@ -8,6 +8,10 @@ HOST = "0.0.0.0"
 PORT = 7777
 BASE_API_URL = f"http://{HOST}:{PORT}/api"
 
+# TODO: Centre window
+# TODO: Start message handler
+# TODO: Etc
+
 
 # TODO: Move to helpers
 def make_request(endpoint, data):
@@ -32,10 +36,57 @@ def make_request(endpoint, data):
 
 
 
-class LoginFrame(tk.Frame):
+class ClientApp(tk.Tk):
 
-	def __init__(self, master):
-		super().__init__(master)
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		
+		self.token = None
+
+		container = tk.Frame(self)
+		container.pack(side="top", fill="both", expand=True)
+		container.grid_rowconfigure(0, weight=1)
+		container.grid_columnconfigure(0, weight=1)
+		self.container = container
+
+		self.frame_classes = {}
+		for F in (LoginPage, ClientPage):
+			page_name = F.__name__
+			self.frame_classes[page_name] = F
+
+		self.current_frame = None
+		self.show_frame("LoginPage")
+
+
+	def show_frame(self, page_name):
+		# Show a frame for the given page name
+		# NOTE: Creates an instance for the frame.
+
+		# Clear bindings of old frame and delete
+		if self.current_frame:
+			self.current_frame.clear_bindings()
+			self.current_frame.destroy()
+			self.current_frame = None
+
+		frame_class = self.frame_classes[page_name]
+		frame = frame_class(parent=self.container, controller=self)
+
+		# Put all of the pages in the same location;
+		# the one on the top of the stacking order
+		# will be the one that is visible.
+		frame.grid(row=0, column=0, sticky="nsew")
+		frame.tkraise()
+
+
+
+class LoginPage(tk.Frame):
+
+	def __init__(self, parent, controller):
+		super().__init__(parent)
+		controller.title("Login")
+
+		self.controller = controller
+		controller.current_frame = self
 
 		self.label_username = tk.Label(self, text="Username")
 		self.label_password = tk.Label(self, text="Password")
@@ -43,42 +94,105 @@ class LoginFrame(tk.Frame):
 		self.entry_username = tk.Entry(self)
 		self.entry_password = tk.Entry(self, show="*")
 
+		# To show errors with
+		self.label_error = tk.Label(self, text="", fg="red", font=("Courier", 10))
+
 		self.label_username.grid(row=0, sticky=tk.E)
 		self.label_password.grid(row=1, sticky=tk.E)
 		self.entry_username.grid(row=0, column=1)
 		self.entry_password.grid(row=1, column=1)
+		self.label_error.grid(columnspan=2)
 
 		self.login_btn = tk.Button(self, text="Login",
 			command=self._login_btn_clicked)
 		self.login_btn.grid(columnspan=2)
-
-		# Make it so you can press enter to log in
-		master.bind("<Return>", self._login_btn_clicked)
 
 		# Focus the username entry!
 		self.entry_username.focus()
 
 		self.pack()
 
+		self.set_bindings()
+
+
+	def set_bindings(self):
+		self.bindings = []
+
+		# Make it so you can press enter to log in
+		self.controller.bind("<Return>", self._login_btn_clicked)
+		self.bindings.append("<Return>")
+
+
+	def clear_bindings(self):
+		for binding in self.bindings:
+			self.controller.unbind(binding)
+
 
 	def _login_btn_clicked(self, event=None):
 		username = self.entry_username.get()
 		password = self.entry_password.get()
 
+		# Clear error message before sending response
+		self.label_error.configure(text="")
 		data = dict(username=username, password=password)
 		resp = make_request("login", data)
 
 		if "error" in resp:
-			tm.showerror("Login error", resp["error"])
+			self.label_error.configure(text=resp["error"])
 			return
 
 		token = resp.get("token", None)
-		tm.showinfo("Logged in", f"Your token is {token}")
+		# tm.showinfo("Logged in", f"Your token is {token}")
 
-		# TODO: Turn this frame into main app frame
+		# Set the parent's token to received token
+		self.controller.token = token
+		self.controller.show_frame("ClientPage")
 
 
-root = tk.Tk()
-root.focus_force() # Doesn't work on mac
-lf = LoginFrame(root)
-root.mainloop()
+
+class ClientPage(tk.Frame):
+
+	def __init__(self, parent, controller):
+		if not controller.token:
+			controller.show_frame("LoginPage")
+
+		super().__init__(parent)
+		controller.title("SpaceChat client")
+
+		self.controller = controller
+		controller.current_frame = self
+
+		self.token_label = tk.Label(self, text=self.controller.token)
+		self.token_label.grid(columnspan=2, sticky=tk.E)
+
+		self.logout_btn = tk.Button(self, text="Logout",
+			command=self._logout_btn_clicked)
+		self.logout_btn.grid(columnspan=2)
+
+		self.pack()
+
+		self.set_bindings()
+
+
+	def set_bindings(self):
+		self.bindings = []
+
+		# Make it so you can press enter to log in
+		self.controller.bind("<l>", self._logout_btn_clicked)
+		self.bindings.append("<l>")
+
+
+	def clear_bindings(self):
+		for binding in self.bindings:
+			self.controller.unbind(binding)
+
+
+	def _logout_btn_clicked(self, event=None):
+		self.controller.token = None
+		self.controller.show_frame("LoginPage")
+
+
+
+if __name__ == "__main__":
+	app = ClientApp()
+	app.mainloop()

@@ -3,6 +3,8 @@ import requests
 import tkinter as tk
 import tkinter.messagebox as tm
 
+# https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter
+
 
 HOST = "0.0.0.0"
 PORT = 7777

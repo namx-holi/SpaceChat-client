@@ -56,22 +56,24 @@ class ClientApp(tk.Tk):
 			page_name = F.__name__
 			self.frame_classes[page_name] = F
 
-		self.current_frame = None
-		self.show_frame("LoginPage")
+		self._frame = None
+		self.switch_frame(LoginPage)
 
 
-	def show_frame(self, page_name):
+	def switch_frame(self, frame_class):
 		# Show a frame for the given page name
 		# NOTE: Creates an instance for the frame.
 
-		# Clear bindings of old frame and delete
-		if self.current_frame:
-			self.current_frame.clear_bindings()
-			self.current_frame.destroy()
-			self.current_frame = None
-
-		frame_class = self.frame_classes[page_name]
+		# Create new frame
 		frame = frame_class(parent=self.container, controller=self)
+
+		# Clear bindings and delete old frame
+		if self._frame is not None:
+			self._frame.clear_bindings()
+			self._frame.destroy()
+
+		# Set new current frame
+		self._frame = frame
 
 		# Put all of the pages in the same location;
 		# the one on the top of the stacking order
@@ -80,15 +82,16 @@ class ClientApp(tk.Tk):
 		frame.tkraise()
 
 
+	# TODO: Method to show a new window
+
+
 
 class LoginPage(tk.Frame):
 
 	def __init__(self, parent, controller):
 		super().__init__(parent)
 		controller.title("Login")
-
 		self.controller = controller
-		controller.current_frame = self
 
 		self.label_username = tk.Label(self, text="Username")
 		self.label_password = tk.Label(self, text="Password")
@@ -113,7 +116,6 @@ class LoginPage(tk.Frame):
 		self.entry_username.focus()
 
 		self.pack()
-
 		self.set_bindings()
 
 
@@ -148,7 +150,7 @@ class LoginPage(tk.Frame):
 
 		# Set the parent's token to received token
 		self.controller.token = token
-		self.controller.show_frame("ClientPage")
+		self.controller.switch_frame(ClientPage)
 
 
 
@@ -156,13 +158,11 @@ class ClientPage(tk.Frame):
 
 	def __init__(self, parent, controller):
 		if not controller.token:
-			controller.show_frame("LoginPage")
+			controller.switch_frame(LoginPage)
 
 		super().__init__(parent)
 		controller.title("SpaceChat client")
-
 		self.controller = controller
-		controller.current_frame = self
 
 		self.token_label = tk.Label(self, text=self.controller.token)
 		self.token_label.grid(columnspan=2, sticky=tk.E)
@@ -172,7 +172,6 @@ class ClientPage(tk.Frame):
 		self.logout_btn.grid(columnspan=2)
 
 		self.pack()
-
 		self.set_bindings()
 
 
@@ -191,7 +190,7 @@ class ClientPage(tk.Frame):
 
 	def _logout_btn_clicked(self, event=None):
 		self.controller.token = None
-		self.controller.show_frame("LoginPage")
+		self.controller.switch_frame(LoginPage)
 
 
 

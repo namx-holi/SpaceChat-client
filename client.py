@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.messagebox as tm
 
 from pages.login_page import LoginPage
-from pages.client_page import ClientPage
+from pages.main_page import MainPage
 
 # https://stackoverflow.com/questions/7546050/switch-between-two-frames-in-tkinter
 
@@ -27,7 +27,7 @@ class ClientApp(tk.Tk):
 		self.container = container
 
 		self.frame_classes = {}
-		for F in (LoginPage, ClientPage):
+		for F in (LoginPage, MainPage):
 			page_name = F.__name__
 			self.frame_classes[page_name] = F
 

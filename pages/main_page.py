@@ -5,7 +5,7 @@ import tkinter as tk
 from pages.page_base import PageBase
 
 
-class ClientPage(PageBase):
+class MainPage(PageBase):
 
 	def __init__(self, parent, controller):
 		if not controller.token:

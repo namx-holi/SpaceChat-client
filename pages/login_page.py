@@ -57,4 +57,4 @@ class LoginPage(PageBase):
 
 		# Set the parent's token to received token
 		self.controller.token = token
-		self.controller.switch_frame("ClientPage")
+		self.controller.switch_frame("MainPage")

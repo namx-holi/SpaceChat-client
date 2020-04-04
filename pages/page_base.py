@@ -23,3 +23,7 @@ class PageBase(tk.Frame):
 		# Removes all keyboard shortcut function bindings
 		for binding in self.bindings:
 			self.controller.unbind(binding)
+
+
+	def close(self):
+		self.clear_bindings()

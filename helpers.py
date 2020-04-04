@@ -1,6 +1,7 @@
 
 import json
 import requests
+import struct
 
 from config import Config
 BASE_API_URL = f"http://{Config.HOST}:{Config.PORT}/api"
@@ -25,3 +26,12 @@ def make_request(endpoint, data):
 
 	print(resp)
 	return resp
+
+
+def read_broadcast_packet(conn):
+	len_bytes = conn.recv(4)
+	content_len = struct.unpack("I", len_bytes)[0]
+
+	content_bytes = conn.recv(content_len)
+	content = content_bytes.decode()
+	return json.loads(content)

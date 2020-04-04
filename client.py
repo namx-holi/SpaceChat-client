@@ -45,7 +45,7 @@ class ClientApp(tk.Tk):
 
 		# Clear bindings and delete old frame
 		if self._frame is not None:
-			self._frame.clear_bindings()
+			self._frame.close()
 			self._frame.destroy()
 
 		# Set new current frame

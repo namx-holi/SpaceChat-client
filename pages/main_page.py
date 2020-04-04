@@ -1,13 +1,9 @@
 
-import select
-import socket
-import threading
 import tkinter as tk
 # import tkinter.messagebox as tm
 
-from config import Config
 from pages.page_base import PageBase
-from helpers import make_request, read_broadcast_packet
+from message_manager import MessageManager
 
 
 class MainPage(PageBase):
@@ -41,43 +37,9 @@ class MainPage(PageBase):
 		self.add_binding("<l>", self._logout_btn_clicked)
 
 		# Connect to the message server!
-		self.connect_to_message_server()
-
-
-	def connect_to_message_server(self):
-		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		s.connect((Config.BROADCAST_HOST, Config.BROADCAST_PORT))
-		self.broadcast_conn = s
-
-		broadcast_handle_thread = threading.Thread(
-			target=self.broadcast_handle_loop)
-		broadcast_handle_thread.start()
-
-
-	def broadcast_handle_loop(self):
-		# Send our token
-		self.broadcast_conn.send(self.controller.token.encode())
-		resp = read_broadcast_packet(self.broadcast_conn)
-		print(resp)
-
-		if "error" in resp:
-			print("ERROR: ", resp)
-			return
-
-		while self.controller.token is not None:
-			ready = select.select(
-				[self.broadcast_conn], [], [],
-				Config.BROADCAST_POLL_DELAY)
-
-			if ready[0]:
-				resp = read_broadcast_packet(self.broadcast_conn)
-				
-				# Add to the textbox
-				self.incoming_message_box.insert(tk.END, repr(resp))
-
-		self.broadcast_conn.send("EXIT".encode())
-		self.broadcast_conn.close()
-		self.broadcast_conn = None
+		self.msg_manager = MessageManager(self)
+		self.msg_manager.bind_message_handler(
+			lambda resp: self.incoming_message_box.insert(tk.END, repr(resp)))
 
 
 	def _logout_btn_clicked(self, event=None):

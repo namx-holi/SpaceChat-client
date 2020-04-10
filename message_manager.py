@@ -40,7 +40,7 @@ class MessageManager:
 		# Send our token
 		self.broadcast_conn.send(self.parent.controller.token.encode())
 		resp = read_broadcast_packet(self.broadcast_conn)
-		print(resp)
+		print(f" [*] {resp['msg']}")
 
 		if "error" in resp:
 			print("ERROR: ", resp)

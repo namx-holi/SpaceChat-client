@@ -24,7 +24,7 @@ def make_request(endpoint, data):
 		print(r.text)
 		raise e
 
-	print(resp)
+	print(f"RESP: {resp}")
 	return resp
 
 

@@ -1,6 +1,6 @@
 
 import tkinter as tk
-# import tkinter.messagebox as tm
+import tkinter.messagebox as tm
 
 from pages.page_base import PageBase
 from message_manager import MessageManager
@@ -38,8 +38,48 @@ class MainPage(PageBase):
 
 		# Connect to the message server!
 		self.msg_manager = MessageManager(self)
-		self.msg_manager.bind_message_handler(
-			lambda resp: self.incoming_message_box.insert(tk.END, repr(resp)))
+		self.msg_manager.bind_message_handler(self.message_handler)
+		self.incoming_message_box.insert(tk.END, "Logged into server!")
+
+
+	def message_handler(self, resp):
+		msg_type = resp.get("type", None)
+		if msg_type is None:
+			# TODO: Error?
+			print(resp)
+
+		elif msg_type == "generic":
+			# TODO
+			print(resp)
+
+		elif msg_type == "user":
+			username = resp["username"]
+			msg = resp["msg"]
+
+			msg_format = f"\n{username}: {msg}"
+			self.incoming_message_box.insert(tk.END, msg_format)
+
+		elif msg_type == "whisper":
+			from_user = resp["username"]
+			to_user = resp["recipient"]
+			msg = resp["msg"]
+
+			msg_format = f"\nwhisper from {from_user} to {to_user}: {msg}"
+			self.incoming_message_box.insert(tk.END, msg_format)
+
+		elif msg_type == "server":
+			msg = resp["msg"]
+			tm.showinfo("Server Message", msg)
+
+		elif msg_type == "alert":
+			msg = resp["msg"]
+
+			msg_format = f"\nALERT! {msg}"
+			self.incoming_message_box.insert(tk.END, msg_format)
+
+		else:
+			# TODO: Error? Unsupported format
+			print(resp)
 
 
 	def _logout_btn_clicked(self, event=None):

@@ -19,7 +19,7 @@ class PageBase(tk.Frame):
 
 
 	def clear_bindings(self):
-		print("Clearing bindings called from {}!".format(type(self)))
+		print(" [*] Clearing bindings called from {}!".format(type(self)))
 		# Removes all keyboard shortcut function bindings
 		for binding in self.bindings:
 			self.controller.unbind(binding)

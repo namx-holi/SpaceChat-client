@@ -1,0 +1,9 @@
+
+class Config:
+	HOST = "0.0.0.0"
+	PORT = 7777
+
+	BROADCAST_HOST = "0.0.0.0"
+	BROADCAST_PORT = 7778
+
+	BROADCAST_POLL_DELAY = 0.25

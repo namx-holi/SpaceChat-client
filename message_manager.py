@@ -9,6 +9,11 @@ from helpers import make_request, read_broadcast_packet
 
 class MessageManager:
 
+	@property
+	def token(self):
+		return self.parent.controller.token
+	
+
 	def __init__(self, parent):
 		self.parent = parent
 
@@ -23,7 +28,9 @@ class MessageManager:
 
 
 	def send_message(self, msg):
-		...
+		# TODO: Threading lock on sending multiple at once?
+		data = dict(token=self.token, msg=msg)
+		resp = make_request("message", data)
 
 
 	def connect_to_message_server(self):
@@ -32,13 +39,15 @@ class MessageManager:
 		self.broadcast_conn = s
 
 		broadcast_handle_thread = threading.Thread(
-			target=self.broadcast_handle_loop)
+			target=self.broadcast_handle_loop,
+			daemon=True) # Daemon to stop on app close
 		broadcast_handle_thread.start()
+		self.thread = broadcast_handle_thread
 
 
 	def broadcast_handle_loop(self):
 		# Send our token
-		self.broadcast_conn.send(self.parent.controller.token.encode())
+		self.broadcast_conn.send(self.token.encode())
 		resp = read_broadcast_packet(self.broadcast_conn)
 		print(f" [*] {resp['msg']}")
 
@@ -46,7 +55,7 @@ class MessageManager:
 			print("ERROR: ", resp)
 			return
 
-		while self.parent.controller.token is not None:
+		while self.token is not None:
 			ready = select.select(
 				[self.broadcast_conn], [], [],
 				Config.BROADCAST_POLL_DELAY)

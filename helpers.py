@@ -2,6 +2,7 @@
 import json
 import requests
 import struct
+import traceback
 
 from config import Config
 BASE_API_URL = f"http://{Config.HOST}:{Config.PORT}/api"
@@ -14,7 +15,8 @@ def make_request(endpoint, data):
 	try:
 		r = requests.post(url=url, json=data)
 	except requests.exceptions.ConnectionError as e:
-		tm.showerror("Server Error", "Server is down")
+		print(" [!] Error in making request")
+		traceback.print_exc()
 		raise e
 
 	# Try read response

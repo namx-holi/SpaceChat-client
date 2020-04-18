@@ -1,3 +1,4 @@
+from requests.exceptions import ConnectionError
 import tkinter as tk
 # import tkinter.messagebox as tm
 
@@ -35,18 +36,26 @@ class LoginPage(PageBase):
 
 		self.pack()
 
-		# Set up keyboard shortcuts		
+		# Set up keyboard shortcuts
 		self.add_binding("<Return>", self._login_btn_clicked)
 
 
 	def _login_btn_clicked(self, event=None):
 		username = self.entry_username.get()
 		password = self.entry_password.get()
+		# Clear the password field
+		self.entry_password.delete(0, "end")
 
 		# Clear error message before sending response
 		self.label_error.configure(text="")
 		data = dict(username=username, password=password)
-		resp = make_request("login", data)
+
+		# Make a login attempt
+		try:
+			resp = make_request("login", data)
+		except ConnectionError as e:
+			self.label_error.configure(text="Cannot connect to server")
+			return
 
 		if "error" in resp:
 			self.label_error.configure(text=resp["error"])
